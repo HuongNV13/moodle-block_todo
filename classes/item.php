@@ -41,10 +41,16 @@ class item extends persistent {
      *
      * @return array
      */
-    public static function get_my_todo_items() {
+    public static function get_my_todo_items(string $sort = null) {
         global $USER;
 
-        return static::get_records(['usermodified' => $USER->id], 'timecreated', 'DESC');
+        $sortcol = 'timecreated';
+
+        if ($sort == 'duedate') {
+            $sortcol = 'duedate';
+        }
+
+        return static::get_records(['usermodified' => $USER->id], $sortcol, 'DESC');
     }
 
     /**
@@ -56,6 +62,9 @@ class item extends persistent {
         return [
             'todotext' => [
                 'type' => PARAM_TEXT,
+            ],
+            'duedate' => [
+                'type' => PARAM_INT,
             ],
             'done' => [
                 'type' => PARAM_BOOL,

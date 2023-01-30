@@ -15,11 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides {@link block_todo\external\add_item} trait.
+ * Provides {@link block_todo\external\get_items} trait.
  *
  * @package     block_todo
  * @category    external
- * @copyright   2018 David Mudrák <david@moodle.com>
+ * @copyright   2023 Huong Nguyen <huongnv13@gmail.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -32,47 +32,54 @@ use context_user;
 use external_function_parameters;
 use external_value;
 
-require_once($CFG->libdir.'/externallib.php');
+require_once($CFG->libdir . '/externallib.php');
 
 /**
- * Trait implementing the external function block_todo_add_item.
+ * Trait implementing the external function block_todo_get_items.
  */
-trait add_item {
+trait get_items {
 
     /**
      * Describes the structure of parameters for the function.
      *
      * @return external_function_parameters
      */
-    public static function add_item_parameters() {
+    public static function get_items_parameters() {
         return new external_function_parameters([
-            'todotext' => new external_value(PARAM_RAW, 'Item text describing what is to be done'),
-            'duedate' => new external_value(PARAM_INT, 'Item due date', VALUE_OPTIONAL),
+            'instanceid' => new external_value(PARAM_INT, 'Instance id'),
+            'contextid' => new external_value(PARAM_INT, 'Context id'),
+            'sort' => new external_value(PARAM_ALPHA, 'Sort direction'),
         ]);
     }
 
     /**
-     * Adds a new todo item.
+     * Get items.
      *
-     * @param string $todotext Item text
-     * @param int|null $duedate Item due date
+     * @param int $instanceid Instance id
+     * @param int $contextid Context id
+     * @param string $sort Sort direction
      */
-    public static function add_item($todotext, ?int $duedate) {
+    public static function get_items(int $instanceid, int $contextid, string $sort) {
         global $USER, $PAGE;
 
         $context = context_user::instance($USER->id);
         self::validate_context($context);
         require_capability('block/todo:myaddinstance', $context);
 
-        $todotext = strip_tags($todotext);
-        $params = self::validate_parameters(self::add_item_parameters(), compact('todotext', 'duedate'));
+        $params = self::validate_parameters(self::get_items_parameters(), compact('instanceid', 'contextid', 'sort'));
 
-        $item = new item(null, (object) $params);
-        $item->create();
+        // Load the list of persistent todo item models from the database.
+        $items = item::get_my_todo_items($params['sort']);
 
-        $itemexporter = new item_exporter($item, ['context' => $context]);
+        // Prepare the exporter of the todo items list.
+        $list = new list_exporter([
+            'instanceid' => $params['instanceid'],
+        ], [
+            'items' => $items,
+            'context' => \context::instance_by_id($params['contextid']),
+        ]);
 
-        return $itemexporter->export($PAGE->get_renderer('core'));
+        return $list->export($PAGE->get_renderer('core'));
     }
 
     /**
@@ -80,7 +87,7 @@ trait add_item {
      *
      * @return external_single_structure
      */
-    public static function add_item_returns() {
-        return item_exporter::get_read_structure();
+    public static function get_items_returns() {
+        return list_exporter::get_read_structure();
     }
 }

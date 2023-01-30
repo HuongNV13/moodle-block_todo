@@ -58,4 +58,15 @@ $functions = [
         'loginrequired' => true,
         'ajax' => true,
     ],
+
+    'block_todo_get_items' => [
+        'classname' => 'block_todo\external\api',
+        'methodname' => 'get_items',
+        'classpath' => '',
+        'description' => 'Get items',
+        'type' => 'read',
+        'capabilities' => 'block/todo:myaddinstance',
+        'loginrequired' => true,
+        'ajax' => true,
+    ],
 ];

@@ -60,19 +60,8 @@ class block_todo extends block_base {
 
         $this->content = new stdClass();
 
-        // Load the list of persistent todo item models from the database.
-        $items = block_todo\item::get_my_todo_items();
-
-        // Prepare the exporter of the todo items list.
-        $list = new block_todo\external\list_exporter([
-            'instanceid' => $this->instance->id,
-        ], [
-            'items' => $items,
-            'context' => $this->context,
-        ]);
-
         // Render the list using a template and exported data.
-        $this->content->text = $OUTPUT->render_from_template('block_todo/content', $list->export($OUTPUT));
+        $this->content->text = $OUTPUT->render_from_template('block_todo/content', ['instanceid' => $this->instance->id]);
 
         return $this->content;
     }
@@ -84,7 +73,8 @@ class block_todo extends block_base {
 
         parent::get_required_javascript();
         $this->page->requires->js_call_amd('block_todo/control', 'init', [
-            'instanceid' => $this->instance->id
+            'instanceid' => $this->instance->id,
+            'contextid' => $this->context->id,
         ]);
     }
 

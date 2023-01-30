@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 $string['placeholder'] = 'What do you need to do?';
 $string['placeholdermore'] = 'Type something here and press the Add button';
 $string['pluginname'] = 'My ToDo list';
+$string['toggle'] = 'Toggle completion of this item';
 $string['privacy:metadata:db:blocktodo'] = 'Storage of users todo items.';
 $string['privacy:metadata:db:blocktodo:done'] = 'Has the item been marked as done.';
 $string['privacy:metadata:db:blocktodo:timecreated'] = 'When the item was created.';

@@ -23,10 +23,18 @@
 }}
 
 <li data-item="{{id}}" class="list-group-item {{#done}}text-muted muted{{/done}}" style="clear:both">
-    {{#done}} <i class="fa fa-check-square" aria-hidden="true"></i> {{/done}}
-    {{^done}} <i class="fa fa-square-o" aria-hidden="true"></i> {{/done}}
-    <span>{{todotext}}</span>
-    <button data-control="delete" type="button" class="close" aria-label="{{#str}} delete {{/str}}">
-        <span aria-hidden="true">&times;</span>
-    </button>
+    <div class="mr-2" data-control="toggle" role="button" title="{{#str}} toggle, block_todo {{/str}}" aria-label="{{#str}} toggle, block_todo {{/str}}">
+        {{#done}} <i class="fa fa-check-square" aria-hidden="true"></i> {{/done}}
+        {{^done}} <i class="fa fa-square-o" aria-hidden="true"></i> {{/done}}
+    </div>
+    <div>
+        <h5>{{#userdate}} {{duedate}}, {{#str}} strftimedaydate, core_langconfig {{/str}} {{/userdate}}</h5>
+    </div>
+    <div>
+        <h6>{{todotext}}</h6>
+    </div>
+    <div class="ml-auto" data-control="actions" data-id="{{id}}" data-text="{{todotext}}" data-duedate="{{duedate}}">
+        {{^done}}<i class="icon fa fa-cog fa-fw " title="{{#str}} edit {{/str}}" role="button" aria-label="{{#str}} edit {{/str}}" data-control="edit"></i>{{/done}}
+        <i class="icon fa fa-trash fa-fw " title="{{#str}} delete {{/str}}" role="button" aria-label="{{#str}} delete {{/str}}" data-control="delete"></i>
+    </div>
 </li>

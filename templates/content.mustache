@@ -50,8 +50,20 @@
 <div data-region="block_todo-instance-{{instanceid}}">
     <form data-control="addform">
         <div class="input-group control-group">
-            <input class="form-control input-block-level" type="text" placeholder="{{#str}} placeholder, block_todo {{/str}}">
-            <span class="input-group-btn">
+            <div class="dropdown block_todo_sort mr-1">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="block_todo_sort_btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Sort
+                </button>
+                <div class="dropdown-menu" aria-labelledby="block_todo_sort_btn">
+                    <a class="dropdown-item block_todo_sort_item" href="#" data-sort="createddate">Created date</a>
+                    <a class="dropdown-item block_todo_sort_item" href="#" data-sort="duedate">Due date</a>
+                </div>
+            </div>
+
+            <input class="form-control input-block-level block_todo_text rounded-left" type="text" placeholder="{{#str}} placeholder, block_todo {{/str}}">
+            <label class="sr-only" for="date">Due date</label>
+            <input class="form-control block_todo_duedate rounded-right" id="duedate" name="duedate" type="date">
+            <span class="input-group-btn ml-1">
                 <button class="btn btn-primary" type="button">
                     <i class="fa fa-plus-circle" aria-hidden="true"></i>
                     {{#str}} add {{/str}}</button>
@@ -61,9 +73,7 @@
 
     <hr>
 
-    <ul class="list-group unstyled">
-        {{#items}}
-            {{>block_todo/item}}
-        {{/items}}
-    </ul>
+    <div class="items-list">
+
+    </div>
 </div>

@@ -31,7 +31,7 @@ define(['jquery', 'core/log', 'core/ajax', 'core/templates', 'core/str'], functi
     /**
      * Initializes the block controls.
      */
-    function init(instanceid) {
+    function init(instanceid, contextid) {
         Log.debug('block_todo/control: initializing controls of the todo block instance ' + instanceid);
 
         var region = $('[data-region="block_todo-instance-' + instanceid +'"]').first();
@@ -41,7 +41,7 @@ define(['jquery', 'core/log', 'core/ajax', 'core/templates', 'core/str'], functi
             return;
         }
 
-        var control = new TodoControl(region);
+        var control = new TodoControl(region, instanceid, contextid);
         control.main();
     }
 
@@ -50,10 +50,14 @@ define(['jquery', 'core/log', 'core/ajax', 'core/templates', 'core/str'], functi
      *
      * @constructor
      * @param {jQuery} region
+     * @param {int} instanceid
+     * @param {int} contextid
      */
-    function TodoControl(region) {
+    function TodoControl(region, instanceid, contextid) {
         var self = this;
         self.region = region;
+        self.instanceid = instanceid;
+        self.contextid = contextid;
     }
 
     /**
@@ -64,12 +68,16 @@ define(['jquery', 'core/log', 'core/ajax', 'core/templates', 'core/str'], functi
         var self = this;
 
         self.addTextForm = self.region.find('[data-control="addform"]').first();
-        self.addTextInput = self.addTextForm.find('input').first();
+        self.addTextInput = self.addTextForm.find('input.block_todo_text').first();
+        self.addDueDateInput = self.addTextForm.find('input.block_todo_duedate').first();
         self.addTextButton = self.addTextForm.find('button').first();
         self.itemsList = self.region.find('ul').first();
+        self.sortActions = self.region.find('.block_todo_sort .block_todo_sort_item');
 
         self.initAddFeatures();
         self.initEditFeatures();
+        self.initSortFeatures();
+        self.getItems('createddate');
     };
 
     /**
@@ -83,6 +91,7 @@ define(['jquery', 'core/log', 'core/ajax', 'core/templates', 'core/str'], functi
         self.addTextForm.on('submit', function(e) {
             e.preventDefault();
             self.addNewTodo();
+            window.console.log('aa');
         });
 
         self.addTextButton.on('click', function() {
@@ -114,6 +123,21 @@ define(['jquery', 'core/log', 'core/ajax', 'core/templates', 'core/str'], functi
     };
 
     /**
+     * Initialize the controls for sorting items.
+     *
+     * @method
+     */
+    TodoControl.prototype.initSortFeatures = function() {
+        const self = this;
+
+        self.sortActions.on('click', (e) => {
+            e.preventDefault();
+            const sortBy = $(e.currentTarget).attr('data-sort');
+            self.getItems(sortBy);
+        });
+    };
+
+    /**
      * Add a new todo item.
      *
      * @method
@@ -122,6 +146,10 @@ define(['jquery', 'core/log', 'core/ajax', 'core/templates', 'core/str'], functi
     TodoControl.prototype.addNewTodo = function () {
         var self = this;
         var text = $.trim(self.addTextInput.val());
+        let args = {
+            duedate: null
+        };
+        const duedate = $.trim(self.addDueDateInput.val());
 
         if (!text) {
             return Str.get_string('placeholdermore', 'block_todo').then(function(text) {
@@ -130,13 +158,17 @@ define(['jquery', 'core/log', 'core/ajax', 'core/templates', 'core/str'], functi
             });
         }
 
+        if (duedate) {
+            args.duedate = Math.floor(new Date(duedate).getTime() / 1000);
+        }
+
         self.addTextInput.prop('disabled', true);
+
+        args.todotext = text;
 
         return Ajax.call([{
             methodname: 'block_todo_add_item',
-            args: {
-                todotext: text
-            }
+            args: args
 
         }])[0].fail(function(reason) {
             Log.error('block_todo/control: unable to add the item');
@@ -220,6 +252,39 @@ define(['jquery', 'core/log', 'core/ajax', 'core/templates', 'core/str'], functi
 
         }).then(function(deletedid) {
             self.itemsList.find('[data-item="' + deletedid + '"]').remove();
+            return $.Deferred().resolve();
+        });
+    };
+
+    /**
+     * Get items.
+     *
+     * @method
+     * @return {Deferred}
+     */
+    TodoControl.prototype.getItems = function(sortBy) {
+        var self = this;
+
+        return Ajax.call([{
+            methodname: 'block_todo_get_items',
+            args: {
+                instanceid: self.instanceid,
+                contextid: self.contextid,
+                sort: sortBy,
+            }
+
+        }])[0].fail(function(reason) {
+            Log.error('block_todo/control: unable to delete the item');
+            Log.debug(reason);
+            return $.Deferred().reject();
+
+        }).then(function(response) {
+            return Templates.render('block_todo/items', response).fail(function(reason) {
+                Log.error('block_todo/control: unable to render items:' + reason);
+            });
+
+        }).then(function(items) {
+            self.region.find('.items-list').html(items);
             return $.Deferred().resolve();
         });
     };
